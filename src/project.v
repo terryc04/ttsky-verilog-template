@@ -22,7 +22,7 @@ module tt_um_example (
   // assign uio_oe  = 0;
   wire [3:0] a   = ui_in[3:0];     
   wire [3:0] b   = ui_in[7:4];     
-  wire [1:0] sel = uio_in[1:0];
+  wire [2:0] sel = uio_in[2:0];
 
   always @(posedge clk) begin
     if (!rst_n) begin
@@ -31,10 +31,12 @@ module tt_um_example (
     end else begin
         // Perform calculation on the clock edge
         case (sel)
-            2'b00: uo_out <= a + b;       // Addition
-            2'b01: uo_out <= a - b;       // Subtraction
-            2'b10: uo_out <= a & b;       // Bitwise AND
-            2'b11: uo_out <= a | b;       // Bitwise OR
+            3'b000: uo_out <= a + b;       // Addition
+            3'b001: uo_out <= a - b;       // Subtraction
+            3'b010: uo_out <= a & b;       // Bitwise AND
+            3'b011: uo_out <= a | b;       // Bitwise OR
+            3'b100: uo_out <= a ^ b;       // Bitwise XOR
+            3'b101: uo_out <= a << 1;      // Left Shift A by 1
             default: uo_out <= 8'b0;
         endcase
     end
@@ -43,6 +45,6 @@ module tt_um_example (
   assign uio_out = 0;
   assign uio_oe  = 0;
   // List all unused inputs to prevent warnings
-  wire _unused = &{ena, uio_in, 1'b0};
+  wire _unused = &{ena, uio_in[7:3], 1'b0};
 
 endmodule

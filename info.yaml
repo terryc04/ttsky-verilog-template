@@ -45,7 +45,7 @@ pinout:
   # Bidirectional pins
   uio[0]: "Sel[0]"
   uio[1]: "Sel[1]"
-  uio[2]: "unused"
+  uio[2]: "Sel[2]"
   uio[3]: "unused"
   uio[4]: "unused"
   uio[5]: "unused"

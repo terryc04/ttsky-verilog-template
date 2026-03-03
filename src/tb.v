@@ -72,6 +72,20 @@ module tb ();
             $display("PASS: 12 OR 1 = 13");
             else $error("FAIL: OR failed. Got %d", uo_out);
 
+        // --- Step F: Test XOR (5 ^ 3) ---
+        // 5 (0101) XOR 3 (0011) = 6 (0110)
+        ui_in = 8'h35; uio_in = 8'b100; // sel = 4
+        @(posedge clk); #1;
+        assert (uo_out == 8'd6) $display("PASS: 5 XOR 3 = 6");
+        else $error("FAIL: XOR failed");
+
+        // --- Step G: Test Left Shift (5 << 1) ---
+        // 5 (0101) << 1 = 10 (1010)
+        ui_in = 8'h05; uio_in = 8'b101; // sel = 5
+        @(posedge clk); #1;
+        assert (uo_out == 8'd10) $display("PASS: 5 << 1 = 10");
+        else $error("FAIL: Left Shift failed");
+
         $display("All tests finished successfully!");
         $finish; 
     end
