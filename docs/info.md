@@ -20,7 +20,7 @@ This testbench first tests the reset by setting rst_n to be low and check that t
 
 ## AI Use
 
-Gemini AI was used to aid with syntax and how to run the testbench. It also helped troubleshoot the change of a wire to register in the module header.
+Gemini AI was used to aid with syntax and how to write and example and run the testbench. It also helped troubleshoot the change of a wire to register in the module header.
 
 ## External hardware
 None are required
