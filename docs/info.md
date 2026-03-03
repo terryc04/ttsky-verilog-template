@@ -16,7 +16,11 @@ This design is a 4-bit Synchronous Arithmetic Logic Unit. It takes two 4-bit num
 A testbench is used to verify the design. Using the following commands allows you to run the testbench: 
 iverilog -g2012 -o alu_sim src/project.v src/tb.v
 vvp alu_sim
-This testbench first tests the reset by setting rst_n to be low and check that the output is 0 using an assert. The functional tests cycle through each operation with provided inputs. All tests are verified using asserts and check the ouput on the posedge of the clock cycle.
+This testbench first tests the reset by setting rst_n to be low and check that the output is 0 using an assert. The functional tests cycle through each operation with provided inputs. All tests are verified using asserts and check the ouput on the posedge of the clock cycle. This is a sufficient testbench because it verifies reset and clock-edge behavior. By using assertions, it ensures that a logical error is caught.
+
+## AI Use
+
+Gemini AI was used to aid with syntax and how to run the testbench. It also helped troubleshoot the change of a wire to register in the module header.
 
 ## External hardware
 None are required
