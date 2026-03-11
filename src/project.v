@@ -1,50 +1,127 @@
-/*
- * Copyright (c) 2024 Your Name
- * SPDX-License-Identifier: Apache-2.0
- */
-
 `default_nettype none
+`timescale 1ns/1ps
 
-module tt_um_example (
-    input  wire [7:0] ui_in,    // Dedicated inputs
-    output reg [7:0] uo_out,   // Dedicated outputs
-    input  wire [7:0] uio_in,   // IOs: Input path
-    output wire [7:0] uio_out,  // IOs: Output path
-    output wire [7:0] uio_oe,   // IOs: Enable path (active high: 0=input, 1=output)
-    input  wire       ena,      // always 1 when the design is powered, so you can ignore it
-    input  wire       clk,      // clock
-    input  wire       rst_n     // reset_n - low to reset
-);
+module tb ();
 
-  // All output pins must be assigned. If not used, assign to 0.
-  // assign uo_out  = ui_in + uio_in;  // Example: ou_out is the sum of ui_in and uio_in
-  // assign uio_out = 0;
-  // assign uio_oe  = 0;
-  wire [3:0] a   = ui_in[3:0];     
-  wire [3:0] b   = ui_in[7:4];     
-  wire [2:0] sel = uio_in[2:0];
+    // DUT signals
+    reg  [7:0] ui_in;
+    reg  [7:0] uio_in;
+    wire [7:0] uo_out;
+    wire [7:0] uio_out;
+    wire [7:0] uio_oe;
 
-  always @(posedge clk) begin
-    if (!rst_n) begin
-        // Reset state: Clear the output when rst_n is 0
-        uo_out <= 8'b0;
-    end else begin
-        // Perform calculation on the clock edge
-        case (sel)
-            3'b000: uo_out <= a + b;       // Addition
-            3'b001: uo_out <= a - b;       // Subtraction
-            3'b010: uo_out <= a & b;       // Bitwise AND
-            3'b011: uo_out <= a | b;       // Bitwise OR
-            3'b100: uo_out <= a ^ b;       // Bitwise XOR
-            3'b101: uo_out <= a << 1;      // Left Shift A by 1
-            default: uo_out <= 8'b0;
-        endcase
+    reg clk;
+    reg rst_n;
+    reg ena;
+
+    // Instantiate DUT
+    tt_um_example dut (
+        .ui_in(ui_in),
+        .uo_out(uo_out),
+        .uio_in(uio_in),
+        .uio_out(uio_out),
+        .uio_oe(uio_oe),
+        .ena(ena),
+        .clk(clk),
+        .rst_n(rst_n)
+    );
+
+    // Clock generation (10ns period)
+    always #5 clk = ~clk;
+
+    initial begin
+        $dumpfile("tb.fst");
+        $dumpvars(0, tb);
+
+        // Initial values
+        clk = 0;
+        rst_n = 0;
+        ena = 1;
+        ui_in = 0;
+        uio_in = 0;
+
+        $display("Starting ALU tests");
+
+        // Release reset
+        #20 rst_n = 1;
+
+        // -------------------------
+        // ADD 5 + 3 = 8
+        // a = 5, b = 3
+        // ui_in = {b,a}
+        // -------------------------
+        ui_in = {4'd3,4'd5};
+        uio_in = 8'b00000000;
+        @(posedge clk);
+        #1;
+        if (uo_out == 8'd8)
+            $display("PASS: ADD");
+        else
+            $display("FAIL: ADD got %d", uo_out);
+
+        // -------------------------
+        // SUB 10 - 4 = 6
+        // -------------------------
+        ui_in = {4'd4,4'd10};
+        uio_in = 8'b00000001;
+        @(posedge clk);
+        #1;
+        if (uo_out == 8'd6)
+            $display("PASS: SUB");
+        else
+            $display("FAIL: SUB got %d", uo_out);
+
+        // -------------------------
+        // AND 12 & 10 = 8
+        // -------------------------
+        ui_in = {4'd10,4'd12};
+        uio_in = 8'b00000010;
+        @(posedge clk);
+        #1;
+        if (uo_out == 8'd8)
+            $display("PASS: AND");
+        else
+            $display("FAIL: AND got %d", uo_out);
+
+        // -------------------------
+        // OR 12 | 1 = 13
+        // -------------------------
+        ui_in = {4'd1,4'd12};
+        uio_in = 8'b00000011;
+        @(posedge clk);
+        #1;
+        if (uo_out == 8'd13)
+            $display("PASS: OR");
+        else
+            $display("FAIL: OR got %d", uo_out);
+
+        // -------------------------
+        // XOR 5 ^ 3 = 6
+        // -------------------------
+        ui_in = {4'd3,4'd5};
+        uio_in = 8'b00000100;
+        @(posedge clk);
+        #1;
+        if (uo_out == 8'd6)
+            $display("PASS: XOR");
+        else
+            $display("FAIL: XOR got %d", uo_out);
+
+        // -------------------------
+        // SHIFT 5 << 1 = 10
+        // -------------------------
+        ui_in = {4'd0,4'd5};
+        uio_in = 8'b00000101;
+        @(posedge clk);
+        #1;
+        if (uo_out == 8'd10)
+            $display("PASS: SHIFT");
+        else
+            $display("FAIL: SHIFT got %d", uo_out);
+
+        $display("All tests complete");
+        #20;
+        $finish;
     end
-  end
-
-  assign uio_out = 0;
-  assign uio_oe  = 0;
-  // List all unused inputs to prevent warnings
-  wire _unused = &{ena, uio_in[7:3], 1'b0};
 
 endmodule
