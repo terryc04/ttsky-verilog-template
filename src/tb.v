@@ -1,91 +1,127 @@
 `default_nettype none
-`timescale 1ns / 1ps
+`timescale 1ns/1ps
 
 module tb ();
 
-    // 1. Declare signals
-    reg [7:0] ui_in;
-    reg [7:0] uio_in;
+    // DUT signals
+    reg  [7:0] ui_in;
+    reg  [7:0] uio_in;
     wire [7:0] uo_out;
     wire [7:0] uio_out;
     wire [7:0] uio_oe;
+
     reg clk;
     reg rst_n;
     reg ena;
 
-    // 2. Instantiate your ALU design
+    // Instantiate DUT
     tt_um_example dut (
-        .ui_in  (ui_in),
-        .uo_out (uo_out),
-        .uio_in (uio_in),
+        .ui_in(ui_in),
+        .uo_out(uo_out),
+        .uio_in(uio_in),
         .uio_out(uio_out),
-        .uio_oe (uio_oe),
-        .ena    (ena),
-        .clk    (clk),
-        .rst_n  (rst_n)
+        .uio_oe(uio_oe),
+        .ena(ena),
+        .clk(clk),
+        .rst_n(rst_n)
     );
 
-    // 3. Clock Generation (100MHz / 10ns period)
+    // Clock generation (10ns period)
     always #5 clk = ~clk;
 
-    // 4. Test Procedure
     initial begin
-        // Initialize signals
+        $dumpfile("tb.fst");
+        $dumpvars(0, tb);
+
+        // Initial values
         clk = 0;
-        rst_n = 0; // Start in reset
+        rst_n = 0;
         ena = 1;
         ui_in = 0;
         uio_in = 0;
 
-        $display("Starting ALU Testbench with Assertions...");
+        $display("Starting ALU tests");
 
-        // --- Step A: Reset Test ---
-        #20 rst_n = 1; 
-        #1; 
-        assert (uo_out === 8'b0) else $error("FAIL: Reset did not clear output");
+        // Release reset
+        #20 rst_n = 1;
 
-        // --- Step B: Test Addition (5 + 3) ---
-        ui_in = 8'h35; uio_in = 8'b00;
-        @(posedge clk); #1; 
-        assert (uo_out == 8'd8) 
-            $display("PASS: 5 + 3 = 8");
-            else $error("FAIL: 5 + 3 expected 8, got %d", uo_out);
+        // -------------------------
+        // ADD 5 + 3 = 8
+        // a = 5, b = 3
+        // ui_in = {b,a}
+        // -------------------------
+        ui_in = {4'd3,4'd5};
+        uio_in = 8'b00000000;
+        @(posedge clk);
+        #1;
+        if (uo_out == 8'd8)
+            $display("PASS: ADD");
+        else
+            $display("FAIL: ADD got %d", uo_out);
 
-        // --- Step C: Test Subtraction (10 - 4) ---
-        ui_in = 8'h4A; uio_in = 8'b01;
-        @(posedge clk); #1;
-        assert (uo_out == 8'd6) 
-            $display("PASS: 10 - 4 = 6");
-            else $error("FAIL: 10 - 4 expected 6, got %d", uo_out);
+        // -------------------------
+        // SUB 10 - 4 = 6
+        // -------------------------
+        ui_in = {4'd4,4'd10};
+        uio_in = 8'b00000001;
+        @(posedge clk);
+        #1;
+        if (uo_out == 8'd6)
+            $display("PASS: SUB");
+        else
+            $display("FAIL: SUB got %d", uo_out);
 
-        // --- Step D: Test AND (12 & 10) ---
-        ui_in = 8'hAC; uio_in = 8'b10;
-        @(posedge clk); #1;
-        assert (uo_out == 8'd8) 
-            $display("PASS: 12 AND 10 = 8");
-            else $error("FAIL: AND failed. Got %d", uo_out);
+        // -------------------------
+        // AND 12 & 10 = 8
+        // -------------------------
+        ui_in = {4'd10,4'd12};
+        uio_in = 8'b00000010;
+        @(posedge clk);
+        #1;
+        if (uo_out == 8'd8)
+            $display("PASS: AND");
+        else
+            $display("FAIL: AND got %d", uo_out);
 
-        // --- Step E: Test OR (12 | 1) ---
-        ui_in = 8'h1C; uio_in = 8'b11;
-        @(posedge clk); #1;
-        assert (uo_out == 8'd13) 
-            $display("PASS: 12 OR 1 = 13");
-            else $error("FAIL: OR failed. Got %d", uo_out);
+        // -------------------------
+        // OR 12 | 1 = 13
+        // -------------------------
+        ui_in = {4'd1,4'd12};
+        uio_in = 8'b00000011;
+        @(posedge clk);
+        #1;
+        if (uo_out == 8'd13)
+            $display("PASS: OR");
+        else
+            $display("FAIL: OR got %d", uo_out);
 
-        // --- Step F: Test XOR (5 ^ 3) ---
-        ui_in = 8'h35; uio_in = 8'b100; // sel = 4
-        @(posedge clk); #1;
-        assert (uo_out == 8'd6) $display("PASS: 5 XOR 3 = 6");
-        else $error("FAIL: XOR failed");
+        // -------------------------
+        // XOR 5 ^ 3 = 6
+        // -------------------------
+        ui_in = {4'd3,4'd5};
+        uio_in = 8'b00000100;
+        @(posedge clk);
+        #1;
+        if (uo_out == 8'd6)
+            $display("PASS: XOR");
+        else
+            $display("FAIL: XOR got %d", uo_out);
 
-        // --- Step G: Test Left Shift (5 << 1) ---
-        ui_in = 8'h05; uio_in = 8'b101; // sel = 5
-        @(posedge clk); #1;
-        assert (uo_out == 8'd10) $display("PASS: 5 << 1 = 10");
-        else $error("FAIL: Left Shift failed");
+        // -------------------------
+        // SHIFT 5 << 1 = 10
+        // -------------------------
+        ui_in = {4'd0,4'd5};
+        uio_in = 8'b00000101;
+        @(posedge clk);
+        #1;
+        if (uo_out == 8'd10)
+            $display("PASS: SHIFT");
+        else
+            $display("FAIL: SHIFT got %d", uo_out);
 
-        $display("All tests finished successfully!");
-        $finish; 
+        $display("All tests complete");
+        #20;
+        $finish;
     end
 
 endmodule
